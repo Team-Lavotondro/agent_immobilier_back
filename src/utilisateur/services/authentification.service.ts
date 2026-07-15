@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUtilisateurDto } from '../dto/create-utilisateur.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { MailerService } from './mailer.service';
 import { ValidateCodeDto } from '../dto/validate-code.dto';
 import { UtilisateurEnAttente } from '../entities/utilisateurEnAttente.entity';
+import { ConnexionUtilisateurDto } from '../dto/connexion-utiisateur.dto';
 
 @Injectable()
 export class AuthentificationService {
@@ -67,7 +68,7 @@ export class AuthentificationService {
     };
   }
 
-  async ValidateUser(data: ValidateCodeDto) {
+  async validateUser(data: ValidateCodeDto) {
     const {email_util,code} = data
     const pending = await this.utilEnAttente.findOne({ where: { email_util } });
     if (!pending) {
@@ -95,8 +96,29 @@ export class AuthentificationService {
 
     await this.utilEnAttente.delete({ email_util });
     const payload = { sub: utilisateur.id_util, email_util: utilisateur.email_util };
-    const token = this.jwt.sign(payload, { expiresIn: '3d' });
+    const token =await this.jwt.signAsync(payload, { expiresIn: '3d' });
     return {token}
   }
 
+  async connexion(user:ConnexionUtilisateurDto){
+    const {email_util,mdp_util}=user
+    const userIsExist = await this.utilRep.findOne({where : {email_util:email_util}})
+
+    if(!userIsExist) {
+      throw new UnauthorizedException("Verifier les informations")
+    }
+    const compareMdp = await bcrypt.compare(mdp_util,userIsExist.mdp_util)
+
+    if(!compareMdp){
+      throw new BadRequestException("Verifier les informations ")
+    }
+
+    const payload = {
+      email_util : userIsExist.email_util,
+      nom_util : userIsExist.nom_util,
+      role : userIsExist.role
+    }
+    const token = await this.jwt.signAsync(payload,{expiresIn : '20d'})
+    return {token : token}
+  }
 }
