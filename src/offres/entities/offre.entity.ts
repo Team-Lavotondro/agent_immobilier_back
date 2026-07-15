@@ -31,7 +31,7 @@ export class Offre {
   @Column({ nullable: true })
   prix_vente: number;
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   nb_pieces_offre: number;
 
   @Column({ nullable: false })

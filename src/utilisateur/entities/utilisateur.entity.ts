@@ -26,7 +26,7 @@ export class Utilisateur {
   @Column({ nullable: false, default: 'user' })
   role: string;
 
-  @Column({ nullable: false, default: false })
+  @Column({ nullable: true, default: false })
   espace_vente: boolean;
 
   @OneToMany(() => Offre, (offre) => offre.utilisateur)
