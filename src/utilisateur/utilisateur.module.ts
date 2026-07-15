@@ -6,10 +6,10 @@ import { Utilisateur } from './entities/utilisateur.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthentificationService } from './services/authentification.service';
 import { UserService } from './services/user.service';
-import { UserController } from './controller/utilisateur.controller';
 import { AuthentificationController } from './controller/authentification.controller';
 import { MailerService } from './services/mailer.service';
 import { UtilisateurEnAttente } from './entities/utilisateurEnAttente.entity';
+import { UserController } from './controller/user.controller';
 
 @Module({
   controllers: [UserController, AuthentificationController],

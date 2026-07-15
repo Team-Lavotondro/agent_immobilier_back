@@ -121,4 +121,5 @@ export class AuthentificationService {
     const token = await this.jwt.signAsync(payload,{expiresIn : '20d'})
     return {token : token}
   }
+
 }
