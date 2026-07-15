@@ -18,5 +18,11 @@ export class UserController {
     const res = this.userService.getAllUtil();
     return res;
   }
+  
+  @Get(':id')
+   async getDetailUser(@Param('id') id:string) {
+    const res = this.userService.getDetailUtil(id);
+    return res;
+  }
 
 }

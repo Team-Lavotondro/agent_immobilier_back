@@ -23,5 +23,22 @@ export class UserService {
     return { users };
   }
 
- 
+  async getDetailUtil(id: string) {
+    const isExist = await this.userRep.findOne({
+      where: {
+        role: 'user',
+        id_util: id,
+      },
+      select: {
+        id_util: true,
+        email_util: true,
+        nom_util: true,
+        num_tel_util: true,
+      },
+    });
+    if (!isExist) {
+      throw new NotFoundException('Aucun utilisateur trouvé');
+    }
+    return { user: isExist };
+  }
 }
