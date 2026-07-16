@@ -1,7 +1,7 @@
 import { Chambre } from 'src/chambres/entities/chambre.entity';
 import { Favoris } from 'src/favoris/entities/favoris.entity';
 import { Reservation } from 'src/reservation/entities/reservation.entity';
-import { Utilisateur } from 'src/utilisateur/entities/utilisateur.entity';
+import { Utilisateur } from 'src/accounts/users/entities/utilisateur.entity';
 import {
   Column,
   Entity,

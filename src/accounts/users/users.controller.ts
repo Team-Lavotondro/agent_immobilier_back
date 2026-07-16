@@ -7,12 +7,12 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { UserService } from '../services/user.service';
-import { UpdateUtilisateurDto } from '../dto/update-utilisateur.dto';
+import { UsersService } from './users.service';
+import { UpdateUtilisateurDto } from './dto/update-utilisateur.dto';
 
 @Controller('user')
-export class UserController {
-  constructor(private readonly userService: UserService) {}
+export class UsersController {
+  constructor(private readonly userService: UsersService) {}
 
   @Get('')
   async getAllUser() {
