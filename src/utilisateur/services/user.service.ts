@@ -51,7 +51,6 @@ export class UserService {
     return { message: 'utilisateur supprimer avec succés' };
   }
 
-
   async updateUser(id: string, updateUserDto: UpdateUtilisateurDto) {
     const user = await this.userRep.findOne({
       where: {
