@@ -1,0 +1,55 @@
+name: NestJS CI (Develop)
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    # 1. On allume la base de données PostgreSQL avec vos identifiants exacts
+    services:
+      postgres-db:
+        image: postgres:15
+        env:
+          POSTGRES_DB: agent_immobilier
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: Tsy_tadidiko02
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    # 2. Le robot télécharge votre code NestJS
+    - name: Récupérer le code
+      uses: actions/checkout@v4
+
+    # 3. On configure Node.js (version stable standard)
+    - name: Configurer Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    # 4. Le robot installe TOUTES vos bibliothèques (TypeORM, Bcrypt, JWT, etc.)
+    - name: Installer les dépendances
+      run: npm ci
+
+    # 5. ÉTAPE MAGIQUE : On recrée votre fichier .env complet depuis votre Secret GitHub
+    - name: Reconstruire le fichier .env
+      run: echo "${{ secrets.DOTENV_FILE }}" > .env
+
+    # 6. On vérifie que TypeScript compile sans aucune erreur
+    - name: Vérifier la compilation NestJS
+      run: npm run build
+
+    # 7. On lance vos tests (qui trouveront la base de données PostgreSQL ci-dessus)
+    - name: Lancer les tests unitaires
+      run: npm run test
