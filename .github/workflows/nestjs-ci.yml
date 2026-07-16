@@ -35,7 +35,7 @@ jobs:
     - name: Configurer Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '24.14.0'
         cache: 'npm'
 
     # 4. Le robot installe TOUTES vos bibliothèques (TypeORM, Bcrypt, JWT, etc.)
