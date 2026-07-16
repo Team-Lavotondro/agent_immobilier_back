@@ -1,12 +1,12 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { AuthentificationService } from '../services/authentification.service';
-import { CreateUtilisateurDto } from '../dto/create-utilisateur.dto';
-import { ValidateCodeDto } from '../dto/validate-code.dto';
-import { ConnexionUtilisateurDto } from '../dto/connexion-utiisateur.dto';
+import { AuthService } from './auth.service';
+import { CreateUtilisateurDto } from '../users/dto/create-utilisateur.dto';
+import { ValidateCodeDto } from '../users/dto/validate-code.dto';
+import { ConnexionUtilisateurDto } from '../users/dto/connexion-utiisateur.dto';
 
 @Controller('authentification')
-export class AuthentificationController {
-  constructor(private auth: AuthentificationService) {}
+export class AuthController {
+  constructor(private auth: AuthService) {}
 
   @Post('sign-up')
   async signUp(@Body() user: CreateUtilisateurDto) {

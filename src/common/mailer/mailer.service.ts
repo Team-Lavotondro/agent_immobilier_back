@@ -8,7 +8,7 @@ import * as handlebars from 'handlebars';
 export class MailerService {
   constructor(private readonly nestMailer: NestMailerService) {}
 
-  async SendEmail(email: string, nom: string, code: string, sujet: string,views:string) {
+  async SendEmail(email: string, nom: string, code: string, sujet: string, views: string) {
     try {
       const templatePath = join(
         __dirname,

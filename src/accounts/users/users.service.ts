@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Utilisateur } from '../entities/utilisateur.entity';
+import { Utilisateur } from './entities/utilisateur.entity';
 import { Repository } from 'typeorm';
-import { UpdateUtilisateurDto } from '../dto/update-utilisateur.dto';
+import { UpdateUtilisateurDto } from './dto/update-utilisateur.dto';
 
 @Injectable()
-export class UserService {
+export class UsersService {
   constructor(
     @InjectRepository(Utilisateur)
     private readonly userRep: Repository<Utilisateur>,
@@ -55,7 +55,7 @@ export class UserService {
     const user = await this.userRep.findOne({
       where: {
         id_util: id,
-        role : "user"
+        role: 'user',
       },
     });
 

@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany, CreateDateColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
 
 @Entity('utilisateursEnAttente')
 export class UtilisateurEnAttente {
@@ -17,7 +17,6 @@ export class UtilisateurEnAttente {
   @Column({ nullable: false })
   code: string;
 
-  @Column({nullable:false,type :'timestamp'})
+  @Column({ nullable: false, type: 'timestamp' })
   expiredAt: Date;
-
 }

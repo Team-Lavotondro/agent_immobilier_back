@@ -15,5 +15,4 @@ export class ConnexionUtilisateurDto {
   })
   @IsNotEmpty()
   mdp_util: string;
-
 }

@@ -1,5 +1,5 @@
 import { Offre } from 'src/offres/entities/offre.entity';
-import { Utilisateur } from 'src/utilisateur/entities/utilisateur.entity';
+import { Utilisateur } from 'src/accounts/users/entities/utilisateur.entity';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity("reservations")

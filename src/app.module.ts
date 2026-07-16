@@ -3,7 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config'; // 1. Ajoutez Conf
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UtilisateurModule } from './utilisateur/utilisateur.module';
+import { AccountsModule } from './accounts/accounts.module';
+import { CommonMailerModule } from './common/mailer/mailer.module';
 import { OffresModule } from './offres/offres.module';
 import { FavorisModule } from './favoris/favoris.module';
 import { ReservationModule } from './reservation/reservation.module';
@@ -29,7 +30,8 @@ import { ModelChambreModule } from './model-chambre/model-chambre.module';
         synchronize: true,
       }),
     }),
-    UtilisateurModule,
+    CommonMailerModule,
+    AccountsModule,
     OffresModule,
     FavorisModule,
     ReservationModule,
