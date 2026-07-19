@@ -15,9 +15,6 @@ export class ModelChambre {
   @Column({ nullable: false })
   description_model_ch: string;
 
-  @Column({ nullable: false })
-  img_model_ch: string;
-
   @OneToMany(() => Chambre, (chambre) => chambre.model_chambre)
   chambres: Chambre[];
 }

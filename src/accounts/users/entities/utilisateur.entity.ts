@@ -9,7 +9,7 @@ export class Utilisateur {
   id_util: string;
 
   @Column({ nullable: true })
-  id_google: string | null;
+  id_google: string;
 
   @Column({ nullable: true })
   nom_util: string;
@@ -20,7 +20,7 @@ export class Utilisateur {
   @Column({ nullable: true })
   num_tel_util: string;
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   mdp_util: string;
 
   @Column({ nullable: false, default: 'user' })
