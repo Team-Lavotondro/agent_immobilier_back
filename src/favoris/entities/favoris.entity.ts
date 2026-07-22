@@ -13,14 +13,14 @@ export class Favoris {
   @PrimaryGeneratedColumn('uuid')
   id_favoris: string;
 
-  @Column({ nullable: false, default: ()=>'CURRENT_TIMESTAMP' })
+  @Column({ nullable: false, default: () => 'CURRENT_TIMESTAMP' })
   date_favoris: Date;
 
-  @ManyToOne(() => Utilisateur, (utilisateur) => utilisateur.favoris)
+  @ManyToOne(() => Utilisateur, (utilisateur) => utilisateur.favoris,{onDelete:'CASCADE'})
   @JoinColumn({ name: 'id_util' })
   utilisateur: Utilisateur;
 
-  @ManyToOne(() => Offre, (offre) => offre.favoris)
+  @ManyToOne(() => Offre, (offre) => offre.favoris,{onDelete:'CASCADE'})
   @JoinColumn({ name: 'id_offre' })
   offre: Offre;
 }

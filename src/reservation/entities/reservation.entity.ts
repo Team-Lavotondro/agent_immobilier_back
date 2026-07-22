@@ -10,11 +10,11 @@ export class Reservation {
   @Column({ nullable: false, default:()=>"CURRENT_TIMESTAMP" })
   date_reservation: Date;
 
-  @ManyToOne(() => Utilisateur, (utilisateur) => utilisateur.reservations)
+  @ManyToOne(() => Utilisateur, (utilisateur) => utilisateur.reservations,{onDelete:'CASCADE'})
   @JoinColumn({ name: 'id_util' })
   utilisateur: Utilisateur;
 
-  @ManyToOne(() => Offre, (offre) => offre.reservations)
+  @ManyToOne(() => Offre, (offre) => offre.reservations,{onDelete:'CASCADE'})
   @JoinColumn({ name: 'id_offre' })
   offre: Offre;
 }

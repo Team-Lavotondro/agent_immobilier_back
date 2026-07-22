@@ -6,9 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUtilisateurDto } from './dto/update-utilisateur.dto';
+import { STATUS_CODES } from 'http';
 
 @Controller('user')
 export class UsersController {

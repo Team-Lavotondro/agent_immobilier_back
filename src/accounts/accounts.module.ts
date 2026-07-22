@@ -27,5 +27,6 @@ import { AdminService } from './admin/admin.service';
       }),
     }),
   ],
+  exports : [UsersService]
 })
 export class AccountsModule {}

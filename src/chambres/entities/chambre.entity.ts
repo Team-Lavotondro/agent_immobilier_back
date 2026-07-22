@@ -23,7 +23,7 @@ export class Chambre {
   @JoinColumn({ name: 'id_offre' })
   offre: Offre;
 
-  @ManyToOne(() => ModelChambre, (model_chambre) => model_chambre.chambres)
+  @ManyToOne(() => ModelChambre, (model_chambre) => model_chambre.chambres,{onDelete:'CASCADE'})
   @JoinColumn({ name: 'id_model_ch' })
   model_chambre: ModelChambre;
 }
