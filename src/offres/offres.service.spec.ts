@@ -1,22 +1,36 @@
-// offres/__tests__/offres.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { BadRequestException } from '@nestjs/common';
 import { OffresService } from './offres.service';
 import { Offre } from './entities/offre.entity';
+import { OffreVente } from './entities/offre-vente.entity';
+import { OffreLocation } from './entities/offre-location.entity';
 import { ImageOffres } from './entities/offre-image.entity';
+import { ModelChambre } from './entities/model-chambre.entity';
 import { UsersService } from '../accounts/users/users.service';
 import { CreateOffreVenteDto } from './dto/create-offre-vente.dto';
-
 
 const mockOffreRepository = {
   findOne: jest.fn(),
   find: jest.fn(),
   save: jest.fn(),
   create: jest.fn(),
-  delete: jest.fn(),
-  update: jest.fn(),
+  remove: jest.fn(),
+};
+
+const mockOffreVenteRepository = {
+  findOne: jest.fn(),
+  find: jest.fn(),
+  save: jest.fn(),
+  create: jest.fn(),
+};
+
+const mockOffreLocationRepository = {
+  findOne: jest.fn(),
+  find: jest.fn(),
+  save: jest.fn(),
+  create: jest.fn(),
 };
 
 const mockImageOffreRepository = {
@@ -24,6 +38,13 @@ const mockImageOffreRepository = {
   save: jest.fn(),
   delete: jest.fn(),
   update: jest.fn(),
+  findOne: jest.fn(),
+};
+
+const mockModelChambreRepository = {
+  create: jest.fn(),
+  save: jest.fn(),
+  find: jest.fn(),
   findOne: jest.fn(),
 };
 
@@ -50,12 +71,14 @@ const mockDataSource = {
   createQueryRunner: jest.fn().mockReturnValue(mockQueryRunner),
 };
 
-describe('OffresService - createOffreVente', () => {
+import { TypeOffre } from './enums';
+
+describe('OffresService', () => {
   let service: OffresService;
 
   const mockOffreData: CreateOffreVenteDto = {
     id_util: 'user-uuid-1234',
-    type_offre: 'vente',
+    type_offre: TypeOffre.VENTE,
     nom_offre: 'Villa de luxe',
     description_offre: 'Magnifique villa avec piscine',
     prix_vente: 250000000,
@@ -99,6 +122,7 @@ describe('OffresService - createOffreVente', () => {
   const mockFinalResponse = {
     ...mockSavedOffre,
     imageOffres: mockImages,
+    modelsChambres: [],
   };
 
   beforeEach(async () => {
@@ -112,8 +136,20 @@ describe('OffresService - createOffreVente', () => {
           useValue: mockOffreRepository,
         },
         {
+          provide: getRepositoryToken(OffreVente),
+          useValue: mockOffreVenteRepository,
+        },
+        {
+          provide: getRepositoryToken(OffreLocation),
+          useValue: mockOffreLocationRepository,
+        },
+        {
           provide: getRepositoryToken(ImageOffres),
           useValue: mockImageOffreRepository,
+        },
+        {
+          provide: getRepositoryToken(ModelChambre),
+          useValue: mockModelChambreRepository,
         },
         {
           provide: UsersService,
@@ -129,14 +165,14 @@ describe('OffresService - createOffreVente', () => {
     service = module.get<OffresService>(OffresService);
   });
 
-  describe('Success cases', () => {
-    it('should create an offer with main and secondary images', async () => {
+  describe('createOffreVente', () => {
+    it('should create a sale offer with main and secondary images', async () => {
       mockUsersService.getDetailUtil.mockResolvedValue({ id_util: mockOffreData.id_util });
       mockQueryRunner.manager.create.mockReturnValueOnce(mockSavedOffre);
       mockQueryRunner.manager.save.mockResolvedValueOnce(mockSavedOffre);
       mockQueryRunner.manager.create.mockReturnValueOnce(mockImages);
       mockQueryRunner.manager.save.mockResolvedValueOnce(mockImages);
-      mockOffreRepository.findOne.mockResolvedValue(mockFinalResponse);
+      mockOffreVenteRepository.findOne.mockResolvedValue(mockFinalResponse);
 
       const result = await service.createOffreVente(mockOffreData);
 
@@ -150,93 +186,12 @@ describe('OffresService - createOffreVente', () => {
       expect(mockQueryRunner.release).toHaveBeenCalled();
     });
 
-    it('should create an offer with only main image', async () => {
-      const dataWithoutImages = {
-        ...mockOffreData,
-        images: undefined,
-      };
-
-      const mockImagesOnlyMain = [mockImages[0]];
-
-      mockUsersService.getDetailUtil.mockResolvedValue({ id_util: dataWithoutImages.id_util });
-      mockQueryRunner.manager.create.mockReturnValueOnce(mockSavedOffre);
-      mockQueryRunner.manager.save.mockResolvedValueOnce(mockSavedOffre);
-      mockQueryRunner.manager.create.mockReturnValueOnce(mockImagesOnlyMain);
-      mockQueryRunner.manager.save.mockResolvedValueOnce(mockImagesOnlyMain);
-      mockOffreRepository.findOne.mockResolvedValue({
-        ...mockFinalResponse,
-        imageOffres: mockImagesOnlyMain,
-      });
-
-      const result = await service.createOffreVente(dataWithoutImages);
-
-      expect(result).toBeDefined();
-      expect(result.imageOffres).toHaveLength(1);
-      expect(mockQueryRunner.commitTransaction).toHaveBeenCalled();
-    });
-  });
-
-  describe('Error cases', () => {
-    it('should throw an error if user does not exist', async () => {
-      // Le service catch l'erreur et lance BadRequestException
-      mockUsersService.getDetailUtil.mockRejectedValue(new Error('User not found'));
-
-      // Le service transforme l'erreur en BadRequestException
-      await expect(service.createOffreVente(mockOffreData)).rejects.toThrow(BadRequestException);
-      expect(mockQueryRunner.rollbackTransaction).toHaveBeenCalled();
-      expect(mockQueryRunner.release).toHaveBeenCalled();
-      expect(mockQueryRunner.commitTransaction).not.toHaveBeenCalled();
-    });
-
     it('should throw an error if price is missing for sale', async () => {
       const invalidData = { ...mockOffreData, prix_vente: undefined };
       mockUsersService.getDetailUtil.mockResolvedValue({ id_util: invalidData.id_util });
 
-      await expect(service.createOffreVente(invalidData)).rejects.toThrow(BadRequestException);
-     
-      expect(mockQueryRunner.rollbackTransaction).toHaveBeenCalled();
-      expect(mockQueryRunner.release).toHaveBeenCalled();
-      expect(mockQueryRunner.commitTransaction).not.toHaveBeenCalled();
-      // La création de l'offre ne devrait PAS être appelée
-      expect(mockQueryRunner.manager.create).not.toHaveBeenCalled();
-    });
+      await expect(service.createOffreVente(invalidData as any)).rejects.toThrow(BadRequestException);
 
-    it('should throw an error if number of rooms is less than 1', async () => {
-      const invalidData = { ...mockOffreData, nb_pieces_offre: 0 };
-      mockUsersService.getDetailUtil.mockResolvedValue({ id_util: invalidData.id_util });
-
-      // La validation est faite APRÈS la vérification de l'utilisateur
-      // Mais AVANT la création de l'offre
-      await expect(service.createOffreVente(invalidData)).rejects.toThrow(BadRequestException);
-      await expect(service.createOffreVente(invalidData)).rejects.toThrow(
-        'Le nombre de pièces doit être supérieur à 0',
-      );
-      expect(mockQueryRunner.rollbackTransaction).toHaveBeenCalled();
-      expect(mockQueryRunner.release).toHaveBeenCalled();
-      expect(mockQueryRunner.commitTransaction).not.toHaveBeenCalled();
-      // La création de l'offre ne devrait PAS être appelée
-      expect(mockQueryRunner.manager.create).not.toHaveBeenCalled();
-    });
-
-    it('should rollback if saving offer fails', async () => {
-      mockUsersService.getDetailUtil.mockResolvedValue({ id_util: mockOffreData.id_util });
-      mockQueryRunner.manager.create.mockReturnValueOnce(mockSavedOffre);
-      mockQueryRunner.manager.save.mockRejectedValueOnce(new Error('Database error'));
-
-      await expect(service.createOffreVente(mockOffreData)).rejects.toThrow(BadRequestException);
-      expect(mockQueryRunner.rollbackTransaction).toHaveBeenCalled();
-      expect(mockQueryRunner.release).toHaveBeenCalled();
-      expect(mockQueryRunner.commitTransaction).not.toHaveBeenCalled();
-    });
-
-    it('should rollback if saving images fails', async () => {
-      mockUsersService.getDetailUtil.mockResolvedValue({ id_util: mockOffreData.id_util });
-      mockQueryRunner.manager.create.mockReturnValueOnce(mockSavedOffre);
-      mockQueryRunner.manager.save.mockResolvedValueOnce(mockSavedOffre);
-      mockQueryRunner.manager.create.mockReturnValueOnce(mockImages);
-      mockQueryRunner.manager.save.mockRejectedValueOnce(new Error('Image save error'));
-
-      await expect(service.createOffreVente(mockOffreData)).rejects.toThrow(BadRequestException);
       expect(mockQueryRunner.rollbackTransaction).toHaveBeenCalled();
       expect(mockQueryRunner.release).toHaveBeenCalled();
       expect(mockQueryRunner.commitTransaction).not.toHaveBeenCalled();

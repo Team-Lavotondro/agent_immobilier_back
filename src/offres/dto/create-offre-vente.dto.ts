@@ -1,90 +1,109 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
+  IsEnum,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   IsUrl,
   IsUUID,
+  Min,
 } from 'class-validator';
+import { TypeOffre } from '../enums';
 
 export class CreateOffreVenteDto {
   @ApiProperty({
-      description: 'ID du modèle de chambre associé',
-      example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-    })
-    @IsNotEmpty()
-    @IsUUID()
-    id_util: string;
-    
-  @ApiProperty({
-    description: "type de l'offre publié : 'location' ou 'vente'",
-    example: 'vente',
+    description: "ID de l'utilisateur ayant publié l'offre",
+    example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
   })
   @IsNotEmpty()
-  @IsString()
-  type_offre: string='vente';
-  
+  @IsUUID()
+  id_util: string;
+
+  @ApiProperty({
+    description: "Type de l'offre publié",
+    enum: TypeOffre,
+    example: TypeOffre.VENTE,
+    default: TypeOffre.VENTE,
+  })
+  @IsOptional()
+  @IsEnum(TypeOffre)
+  type_offre?: TypeOffre = TypeOffre.VENTE;
+
   @ApiProperty({
     description: "Nom de l'offre",
-    example: 'Maison beux à vendre',
+    example: 'Villa moderne à vendre',
   })
   @IsNotEmpty()
   @IsString()
   nom_offre: string;
-  
+
   @ApiProperty({
-    description: "description de l'offre",
-    example: 'Maison avec terrasse , salle de bain inclut ,...',
+    description: "Description de l'offre",
+    example: 'Grande villa avec piscine, garage et jardin privé.',
   })
   @IsNotEmpty()
   @IsString()
   description_offre: string;
-  
+
   @ApiProperty({
-    description: "Prix  de l'offre",
+    description: "Prix de vente de l'offre (Ar)",
     example: 150000000,
   })
   @IsNotEmpty()
-  @IsInt()
+  @IsNumber()
+  @Min(0)
   prix_vente: number;
-  
+
   @ApiProperty({
-    description: 'nombre de piece pour la maison ',
-    example: 4,
+    description: 'Superficie du bien (en m²)',
+    example: 250.5,
+    required: false,
   })
-  @IsNotEmpty()
-  @IsInt()
-  nb_pieces_offre: number;
-  
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  superficie?: number;
+
   @ApiProperty({
-    description: 'Adresse de la maisaon à vendre ',
-    example: 'lot II a 73 bis ',
+    description: 'Nombre de pièces dans la propriété',
+    example: 5,
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  nb_pieces_offre?: number;
+
+  @ApiProperty({
+    description: 'Adresse exacte du bien',
+    example: 'Lot II A 73 Bis',
+    required: false,
   })
   @IsOptional()
   @IsString()
-  @IsString()
-  adresse_offre: string;
-  
+  adresse_offre?: string;
+
   @ApiProperty({
-    description: 'lieu de la maison',
+    description: 'Quartier / lieu du bien',
     example: 'Andrainjato',
   })
   @IsNotEmpty()
   @IsString()
   lieu: string;
-  
+
   @ApiProperty({
-    description: 'le nom de la ville où se trouve la maison',
+    description: 'Nom de la ville où se trouve le bien',
     example: 'Fianarantsoa',
   })
   @IsNotEmpty()
   @IsString()
   ville: string;
 
-   @ApiProperty({
-    description: 'Image principale de l\'offre (URL publique)',
+  @ApiProperty({
+    description: "URL de l'image principale de l'offre",
     example: 'https://xyz.supabase.co/storage/v1/object/public/offres/villa.jpg',
   })
   @IsNotEmpty()
@@ -92,13 +111,13 @@ export class CreateOffreVenteDto {
   image_principale: string;
 
   @ApiProperty({
-    description: 'Images secondaires (URLs publiques)',
+    description: 'URLs des images secondaires',
     example: ['https://xyz.supabase.co/offres/img1.jpg', 'https://xyz.supabase.co/offres/img2.jpg'],
     type: [String],
+    required: false,
   })
   @IsArray()
   @IsOptional()
   @IsUrl({}, { each: true })
-  images: string[];
-
+  images?: string[];
 }

@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config'; // 1. Ajoutez ConfigService ici
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -8,8 +8,6 @@ import { CommonMailerModule } from './common/mailer/mailer.module';
 import { OffresModule } from './offres/offres.module';
 import { FavorisModule } from './favoris/favoris.module';
 import { ReservationModule } from './reservation/reservation.module';
-import { ChambresModule } from './chambres/chambres.module';
-import { ModelChambreModule } from './model-chambre/model-chambre.module';
 
 @Module({
   imports: [
@@ -22,7 +20,7 @@ import { ModelChambreModule } from './model-chambre/model-chambre.module';
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.get<string>('DB_HOST'),
-        port: configService.get<number>('DB_PORT'), 
+        port: configService.get<number>('DB_PORT'),
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
@@ -35,10 +33,8 @@ import { ModelChambreModule } from './model-chambre/model-chambre.module';
     OffresModule,
     FavorisModule,
     ReservationModule,
-    ChambresModule,
-    ModelChambreModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
