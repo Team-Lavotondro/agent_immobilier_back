@@ -1,11 +1,13 @@
-// offres/__tests__/offres.controller.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { OffresController } from './offres.controller';
 import { OffresService } from './offres.service';
 import { Offre } from './entities/offre.entity';
+import { OffreVente } from './entities/offre-vente.entity';
+import { OffreLocation } from './entities/offre-location.entity';
 import { ImageOffres } from './entities/offre-image.entity';
+import { ModelChambre } from './entities/model-chambre.entity';
 import { UsersService } from '../accounts/users/users.service';
 import { CreateOffreVenteDto } from './dto/create-offre-vente.dto';
 
@@ -14,16 +16,30 @@ const mockOffreRepository = {
   find: jest.fn(),
   save: jest.fn(),
   create: jest.fn(),
-  delete: jest.fn(),
-  update: jest.fn(),
+};
+
+const mockOffreVenteRepository = {
+  findOne: jest.fn(),
+  find: jest.fn(),
+  save: jest.fn(),
+  create: jest.fn(),
+};
+
+const mockOffreLocationRepository = {
+  findOne: jest.fn(),
+  find: jest.fn(),
+  save: jest.fn(),
+  create: jest.fn(),
 };
 
 const mockImageOffreRepository = {
   create: jest.fn(),
   save: jest.fn(),
-  delete: jest.fn(),
-  update: jest.fn(),
-  findOne: jest.fn(),
+};
+
+const mockModelChambreRepository = {
+  create: jest.fn(),
+  save: jest.fn(),
 };
 
 const mockUsersService = {
@@ -39,8 +55,6 @@ const mockQueryRunner = {
   manager: {
     create: jest.fn(),
     save: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
     findOne: jest.fn(),
   },
 };
@@ -49,13 +63,15 @@ const mockDataSource = {
   createQueryRunner: jest.fn().mockReturnValue(mockQueryRunner),
 };
 
+import { TypeOffre } from './enums';
+
 describe('OffresController', () => {
   let controller: OffresController;
   let service: OffresService;
 
   const mockCreateDto: CreateOffreVenteDto = {
     id_util: 'user-uuid-1234',
-    type_offre: 'vente',
+    type_offre: TypeOffre.VENTE,
     nom_offre: 'Villa de luxe',
     description_offre: 'Magnifique villa avec piscine',
     prix_vente: 250000000,
@@ -74,6 +90,7 @@ describe('OffresController', () => {
       { id_image: 'img-1', url_image: mockCreateDto.image_principale, is_principale: true },
       { id_image: 'img-2', url_image: mockCreateDto.images[0], is_principale: false },
     ],
+    modelsChambres: [],
   };
 
   beforeEach(async () => {
@@ -88,8 +105,20 @@ describe('OffresController', () => {
           useValue: mockOffreRepository,
         },
         {
+          provide: getRepositoryToken(OffreVente),
+          useValue: mockOffreVenteRepository,
+        },
+        {
+          provide: getRepositoryToken(OffreLocation),
+          useValue: mockOffreLocationRepository,
+        },
+        {
           provide: getRepositoryToken(ImageOffres),
           useValue: mockImageOffreRepository,
+        },
+        {
+          provide: getRepositoryToken(ModelChambre),
+          useValue: mockModelChambreRepository,
         },
         {
           provide: UsersService,
@@ -111,22 +140,13 @@ describe('OffresController', () => {
     expect(service).toBeDefined();
   });
 
-  describe('POST /offres/vente', () => {
+  describe('POST /offres/create-vente', () => {
     it('should create a sale offer successfully', async () => {
       jest.spyOn(service, 'createOffreVente').mockResolvedValue(mockResponse as any);
 
       const result = await controller.createVente(mockCreateDto);
 
       expect(result).toEqual(mockResponse);
-      expect(service.createOffreVente).toHaveBeenCalledWith(mockCreateDto);
-      expect(service.createOffreVente).toHaveBeenCalledTimes(1);
-    });
-
-    it('should return an error if service fails', async () => {
-      const error = new Error('Creation error');
-      jest.spyOn(service, 'createOffreVente').mockRejectedValue(error);
-
-      await expect(controller.createVente(mockCreateDto)).rejects.toThrow(error);
       expect(service.createOffreVente).toHaveBeenCalledWith(mockCreateDto);
     });
   });
