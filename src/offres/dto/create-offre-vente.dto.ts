@@ -23,16 +23,6 @@ export class CreateOffreVenteDto {
   id_util: string;
 
   @ApiProperty({
-    description: "Type de l'offre publié",
-    enum: TypeOffre,
-    example: TypeOffre.VENTE,
-    default: TypeOffre.VENTE,
-  })
-  @IsOptional()
-  @IsEnum(TypeOffre)
-  type_offre?: TypeOffre = TypeOffre.VENTE;
-
-  @ApiProperty({
     description: "Nom de l'offre",
     example: 'Villa moderne à vendre',
   })
@@ -75,7 +65,7 @@ export class CreateOffreVenteDto {
   @IsOptional()
   @IsInt()
   @Min(1)
-  nb_pieces_offre?: number;
+  nbre_piece?: number;
 
   @ApiProperty({
     description: 'Adresse exacte du bien',
@@ -104,7 +94,8 @@ export class CreateOffreVenteDto {
 
   @ApiProperty({
     description: "URL de l'image principale de l'offre",
-    example: 'https://xyz.supabase.co/storage/v1/object/public/offres/villa.jpg',
+    example:
+      'https://xyz.supabase.co/storage/v1/object/public/offres/villa.jpg',
   })
   @IsNotEmpty()
   @IsUrl()
@@ -112,7 +103,10 @@ export class CreateOffreVenteDto {
 
   @ApiProperty({
     description: 'URLs des images secondaires',
-    example: ['https://xyz.supabase.co/offres/img1.jpg', 'https://xyz.supabase.co/offres/img2.jpg'],
+    example: [
+      'https://xyz.supabase.co/offres/img1.jpg',
+      'https://xyz.supabase.co/offres/img2.jpg',
+    ],
     type: [String],
     required: false,
   })
@@ -120,4 +114,15 @@ export class CreateOffreVenteDto {
   @IsOptional()
   @IsUrl({}, { each: true })
   images?: string[];
+
+  @ApiProperty({
+    description: 'Caractéristiques générales du bien',
+    example: ['Piscine', 'Garage', 'Jardin'],
+    type: [String],
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  caracteristiques_generale?: string[];
 }

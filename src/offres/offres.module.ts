@@ -9,6 +9,7 @@ import { ImageOffres } from './entities/offre-image.entity';
 import { ModelChambre } from './entities/model-chambre.entity';
 import { Utilisateur } from '../accounts/users/entities/utilisateur.entity';
 import { AccountsModule } from 'src/accounts/accounts.module';
+import { LocationResidentielle } from './entities/offres-location-residentiel.entity';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AccountsModule } from 'src/accounts/accounts.module';
       OffreLocation,
       ImageOffres,
       ModelChambre,
+      LocationResidentielle,
       Utilisateur,
     ]),
     AccountsModule,

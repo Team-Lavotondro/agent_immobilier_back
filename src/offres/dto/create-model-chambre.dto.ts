@@ -79,11 +79,13 @@ export class CreateModelChambreDto {
   quantite_disponible?: number;
 
   @ApiProperty({
-    description: 'Statut de disponibilité',
-    example: true,
+    description: 'Caractéristiques spécifiques du modèle',
+    example: ['Balcon', 'Climatisation', 'Salle de bain privée'],
+    type: [String],
     required: false,
   })
   @IsOptional()
-  @IsBoolean()
-  is_dispo?: boolean;
+  @IsArray()
+  @IsString({ each: true })
+  caracteristiques?: string[];
 }

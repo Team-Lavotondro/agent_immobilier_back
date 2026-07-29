@@ -10,6 +10,7 @@ import { ImageOffres } from './entities/offre-image.entity';
 import { ModelChambre } from './entities/model-chambre.entity';
 import { UsersService } from '../accounts/users/users.service';
 import { CreateOffreVenteDto } from './dto/create-offre-vente.dto';
+import { TypeOffre } from './enums';
 
 const mockOffreRepository = {
   findOne: jest.fn(),
@@ -71,18 +72,17 @@ const mockDataSource = {
   createQueryRunner: jest.fn().mockReturnValue(mockQueryRunner),
 };
 
-import { TypeOffre } from './enums';
-
 describe('OffresService', () => {
   let service: OffresService;
 
+  // Données envoyées par le client : plus de type_offre (fixé par le service),
+  // nbre_piece à la place de nb_pieces_offre.
   const mockOffreData: CreateOffreVenteDto = {
     id_util: 'user-uuid-1234',
-    type_offre: TypeOffre.VENTE,
     nom_offre: 'Villa de luxe',
     description_offre: 'Magnifique villa avec piscine',
     prix_vente: 250000000,
-    nb_pieces_offre: 6,
+    nbre_piece: 6,
     adresse_offre: 'Lot II A 73 Bis',
     lieu: 'Andrainjato',
     ville: 'Fianarantsoa',
@@ -93,9 +93,23 @@ describe('OffresService', () => {
     ],
   };
 
+  // 1ère entité créée : l'offre "commune"
   const mockSavedOffre = {
     id_offre: 'offre-uuid-1234',
-    ...mockOffreData,
+    nom_offre: mockOffreData.nom_offre,
+    description_offre: mockOffreData.description_offre,
+    adresse_offre: mockOffreData.adresse_offre,
+    lieu: mockOffreData.lieu,
+    ville: mockOffreData.ville,
+    type_offre: TypeOffre.VENTE,
+  };
+
+  // 2ème entité créée : les détails de vente, liés à l'offre commune
+  const mockSavedOffreVente = {
+    id_vente: 'vente-uuid-5678',
+    prix_vente: mockOffreData.prix_vente,
+    nbre_piece: mockOffreData.nbre_piece,
+    offre: mockSavedOffre,
   };
 
   const mockImages = [
@@ -103,26 +117,28 @@ describe('OffresService', () => {
       id_image: 'img-uuid-1',
       url_image: mockOffreData.image_principale,
       is_principale: true,
-      offre: mockSavedOffre,
     },
     {
       id_image: 'img-uuid-2',
-      url_image: mockOffreData.images[0],
+      url_image: mockOffreData.images![0],
       is_principale: false,
-      offre: mockSavedOffre,
     },
     {
       id_image: 'img-uuid-3',
-      url_image: mockOffreData.images[1],
+      url_image: mockOffreData.images![1],
       is_principale: false,
-      offre: mockSavedOffre,
     },
   ];
 
+  // Ce que renvoie offreVenteRepository.findOne(...) après création :
+  // OffreVente avec sa relation "offre" chargée (imageOffres + utilisateur imbriqués)
   const mockFinalResponse = {
-    ...mockSavedOffre,
-    imageOffres: mockImages,
-    modelsChambres: [],
+    ...mockSavedOffreVente,
+    offre: {
+      ...mockSavedOffre,
+      imageOffres: mockImages,
+      utilisateur: { id_util: mockOffreData.id_util },
+    },
   };
 
   beforeEach(async () => {
@@ -131,10 +147,7 @@ describe('OffresService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OffresService,
-        {
-          provide: getRepositoryToken(Offre),
-          useValue: mockOffreRepository,
-        },
+        { provide: getRepositoryToken(Offre), useValue: mockOffreRepository },
         {
           provide: getRepositoryToken(OffreVente),
           useValue: mockOffreVenteRepository,
@@ -151,14 +164,8 @@ describe('OffresService', () => {
           provide: getRepositoryToken(ModelChambre),
           useValue: mockModelChambreRepository,
         },
-        {
-          provide: UsersService,
-          useValue: mockUsersService,
-        },
-        {
-          provide: DataSource,
-          useValue: mockDataSource,
-        },
+        { provide: UsersService, useValue: mockUsersService },
+        { provide: DataSource, useValue: mockDataSource },
       ],
     }).compile();
 
@@ -167,33 +174,78 @@ describe('OffresService', () => {
 
   describe('createOffreVente', () => {
     it('should create a sale offer with main and secondary images', async () => {
-      mockUsersService.getDetailUtil.mockResolvedValue({ id_util: mockOffreData.id_util });
-      mockQueryRunner.manager.create.mockReturnValueOnce(mockSavedOffre);
-      mockQueryRunner.manager.save.mockResolvedValueOnce(mockSavedOffre);
-      mockQueryRunner.manager.create.mockReturnValueOnce(mockImages);
-      mockQueryRunner.manager.save.mockResolvedValueOnce(mockImages);
+      mockUsersService.getDetailUtil.mockResolvedValue({
+        id_util: mockOffreData.id_util,
+      });
+
+      // Ordre des appels dans le service :
+      // 1) create(Offre) -> save(Offre)
+      // 2) create(OffreVente) -> save(OffreVente)
+      // 3) create(ImageOffres) -> save(ImageOffres)
+      mockQueryRunner.manager.create
+        .mockReturnValueOnce(mockSavedOffre) // create(Offre, ...)
+        .mockReturnValueOnce(mockSavedOffreVente) // create(OffreVente, ...)
+        .mockReturnValueOnce(mockImages); // create(ImageOffres, ...)
+
+      mockQueryRunner.manager.save
+        .mockResolvedValueOnce(mockSavedOffre) // save(offre)
+        .mockResolvedValueOnce(mockSavedOffreVente) // save(offreVente)
+        .mockResolvedValueOnce(mockImages); // save(imageEntities)
+
       mockOffreVenteRepository.findOne.mockResolvedValue(mockFinalResponse);
 
       const result = await service.createOffreVente(mockOffreData);
 
       expect(result).toBeDefined();
-      expect(result.id_offre).toBe(mockSavedOffre.id_offre);
-      expect(result.imageOffres).toHaveLength(3);
-      expect(mockUsersService.getDetailUtil).toHaveBeenCalledWith(mockOffreData.id_util);
+      expect(result.id_vente).toBe(mockSavedOffreVente.id_vente);
+      expect(result.offre.id_offre).toBe(mockSavedOffre.id_offre);
+      expect(result.offre.imageOffres).toHaveLength(3);
+
+      expect(mockUsersService.getDetailUtil).toHaveBeenCalledWith(
+        mockOffreData.id_util,
+      );
       expect(mockQueryRunner.connect).toHaveBeenCalled();
       expect(mockQueryRunner.startTransaction).toHaveBeenCalled();
       expect(mockQueryRunner.commitTransaction).toHaveBeenCalled();
       expect(mockQueryRunner.release).toHaveBeenCalled();
+
+      expect(mockOffreVenteRepository.findOne).toHaveBeenCalledWith({
+        where: { id_vente: mockSavedOffreVente.id_vente },
+        relations: {
+          offre: {
+            imageOffres: true,
+            utilisateur: true,
+          },
+        },
+      });
     });
 
     it('should throw an error if price is missing for sale', async () => {
       const invalidData = { ...mockOffreData, prix_vente: undefined };
-      mockUsersService.getDetailUtil.mockResolvedValue({ id_util: invalidData.id_util });
+      mockUsersService.getDetailUtil.mockResolvedValue({
+        id_util: invalidData.id_util,
+      });
 
-      await expect(service.createOffreVente(invalidData as any)).rejects.toThrow(BadRequestException);
+      await expect(
+        service.createOffreVente(invalidData as any),
+      ).rejects.toThrow(BadRequestException);
 
       expect(mockQueryRunner.rollbackTransaction).toHaveBeenCalled();
       expect(mockQueryRunner.release).toHaveBeenCalled();
+      expect(mockQueryRunner.commitTransaction).not.toHaveBeenCalled();
+    });
+
+    it('should throw an error if nbre_piece is less than 1', async () => {
+      const invalidData = { ...mockOffreData, nbre_piece: 0 };
+      mockUsersService.getDetailUtil.mockResolvedValue({
+        id_util: invalidData.id_util,
+      });
+
+      await expect(
+        service.createOffreVente(invalidData as any),
+      ).rejects.toThrow(BadRequestException);
+
+      expect(mockQueryRunner.rollbackTransaction).toHaveBeenCalled();
       expect(mockQueryRunner.commitTransaction).not.toHaveBeenCalled();
     });
   });

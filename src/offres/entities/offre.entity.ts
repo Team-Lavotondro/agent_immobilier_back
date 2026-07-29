@@ -8,16 +8,16 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
-  TableInheritance,
   UpdateDateColumn,
 } from 'typeorm';
 import { ImageOffres } from './offre-image.entity';
-import { ModelChambre } from './model-chambre.entity';
+import { OffreLocation } from './offre-location.entity';
+import { OffreVente } from './offre-vente.entity';
 import { TypeOffre } from '../enums';
 
 @Entity('offres')
-@TableInheritance({ column: { type: 'varchar', name: 'type_offre' } })
 export class Offre {
   @PrimaryGeneratedColumn('uuid')
   id_offre: string;
@@ -25,38 +25,45 @@ export class Offre {
   @Column({
     type: 'enum',
     enum: TypeOffre,
-    nullable: false,
     default: TypeOffre.VENTE,
   })
   type_offre: TypeOffre;
 
-  @Column({ nullable: false })
+  @Column()
   nom_offre: string;
 
-  @Column({ nullable: false })
+  @Column('text')
   description_offre: string;
 
   @Column({ nullable: true })
   adresse_offre: string;
 
-  @Column({ nullable: false })
+  @Column()
   lieu: string;
 
-  @Column({ nullable: false })
+  @Column()
   ville: string;
 
-  @Column({ nullable: true })
-  nb_pieces_offre: number;
+  @Column({
+    type: 'simple-json',
+    nullable: true,
+  })
+  caracteristiques: string[];
 
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn()
   created_At: Date;
 
-  @UpdateDateColumn({
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
-  })
+  @UpdateDateColumn()
   updated_At: Date;
+
+  @ManyToOne(() => Utilisateur, (utilisateur) => utilisateur.offres)
+  @JoinColumn({ name: 'id_util' })
+  utilisateur: Utilisateur;
+
+  @OneToMany(() => ImageOffres, (image) => image.offre, {
+    cascade: true,
+  })
+  imageOffres: ImageOffres[];
 
   @OneToMany(() => Reservation, (reservation) => reservation.offre)
   reservations: Reservation[];
@@ -64,19 +71,13 @@ export class Offre {
   @OneToMany(() => Favoris, (favoris) => favoris.offre)
   favoris: Favoris[];
 
-  @OneToMany(() => ImageOffres, (imageOffres) => imageOffres.offre, {
+  @OneToOne(() => OffreVente, (offreVente) => offreVente.offre, {
     cascade: true,
   })
-  imageOffres: ImageOffres[];
+  offreVente: OffreVente;
 
-  @OneToMany(() => ModelChambre, (modelChambre) => modelChambre.offre, {
+  @OneToOne(() => OffreLocation, (offreLocation) => offreLocation.offre, {
     cascade: true,
   })
-  modelsChambres: ModelChambre[];
-
-  @ManyToOne(() => Utilisateur, (utilisateur) => utilisateur.offres, {
-    cascade: true,
-  })
-  @JoinColumn({ name: 'id_util' })
-  utilisateur: Utilisateur;
+  offreLocation: OffreLocation;
 }
